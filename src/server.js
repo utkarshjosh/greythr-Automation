@@ -9,8 +9,23 @@ import { sendNotification } from "./notify.js";
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// Enable CORS for all origins
-app.use(cors());
+// Enable CORS for all origins with explicit configuration
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Trigger-Token",
+      "X-Force",
+    ],
+    credentials: false,
+  })
+);
+
+// Handle preflight requests explicitly
+app.options("*", cors());
 
 // Middleware for JSON body parsing
 app.use(express.json());
