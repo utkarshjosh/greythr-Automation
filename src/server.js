@@ -1,12 +1,16 @@
 // src/server.js
 import express from "express";
 import cron from "node-cron";
+import cors from "cors";
 import { initFirebase } from "./firebase-config.js";
 import { runAutomation } from "./run-automation.js";
 import { sendNotification } from "./notify.js";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+// Enable CORS for all origins
+app.use(cors());
 
 // Middleware for JSON body parsing
 app.use(express.json());
