@@ -13,9 +13,10 @@ let settingsApplied = false;
 
 export const initFirebase = () => {
     if (!fs.existsSync(serviceAccountPath)) {
-        console.error("❌ serviceAccountKey.json not found!");
+        const errorMsg = "serviceAccountKey.json not found! Please place your Firebase service account key in the server/ directory.";
+        console.error("❌ " + errorMsg);
         console.error("💡 Please place your Firebase service account key in the server/ directory.");
-        process.exit(1);
+        throw new Error(errorMsg);
     }
 
     const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));

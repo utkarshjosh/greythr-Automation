@@ -135,6 +135,19 @@ async function dailyTask(force = false) {
     // Check if already done before running automation
     const alreadyDone = config.status === "DONE";
 
+    // If already done and not forced, return early without running automation
+    if (alreadyDone && !force) {
+      const message = "Swipe was already completed today. No action needed.";
+      console.log(`✅ ${message}`);
+      await sendNotification("GreytHR Automation", message);
+      return {
+        success: true,
+        message,
+        alreadyDone: true,
+        status: config.status || "DONE",
+      };
+    }
+
     if (force && alreadyDone) {
       console.log(
         "⚡ Force mode: Running automation even though status is DONE"
@@ -148,26 +161,19 @@ async function dailyTask(force = false) {
     const afterConfig = await fetchTodayConfig();
     const finalStatus = afterConfig.status || "UNKNOWN";
 
-    if (alreadyDone && !force) {
-      const message = "Swipe was already completed today. Verified via modal.";
-      console.log(`✅ ${message}`);
-      await sendNotification("GreytHR Automation", message);
-      return { success: true, message, alreadyDone: true, status: finalStatus };
-    } else {
-      const message =
-        force && alreadyDone
-          ? "Automation forced to run (bypassed DONE status)."
-          : "Swipe-in completed successfully.";
-      console.log(`✅ ${message}`);
-      await sendNotification("GreytHR Automation", message);
-      return {
-        success: true,
-        message,
-        alreadyDone: false,
-        status: finalStatus,
-        forced: force,
-      };
-    }
+    const message =
+      force && alreadyDone
+        ? "Automation forced to run (bypassed DONE status)."
+        : "Swipe-in completed successfully.";
+    console.log(`✅ ${message}`);
+    await sendNotification("GreytHR Automation", message);
+    return {
+      success: true,
+      message,
+      alreadyDone: false,
+      status: finalStatus,
+      forced: force,
+    };
   } catch (e) {
     console.error("❌ Daily task failed:", e);
     await sendNotification(

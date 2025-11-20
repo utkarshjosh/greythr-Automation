@@ -11,6 +11,10 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Check if running standalone (not imported as a module)
+const isStandaloneMode =
+  process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename);
+
 export class GreytHRAutomation {
   constructor(force = false) {
     this.browser = null;
@@ -147,7 +151,13 @@ export class GreytHRAutomation {
     if (!this.empId || !this.password) {
       console.error("❌ Missing credentials!");
       console.error("💡 Please set EMP_ID and PASSWORD in .env file");
-      process.exit(1);
+      if (isStandaloneMode) {
+        process.exit(1);
+      } else {
+        throw new Error(
+          "Missing credentials: EMP_ID and PASSWORD must be set in .env file"
+        );
+      }
     }
     console.log(`✅ Credentials loaded for Employee ID: ${this.empId}\n`);
   }
@@ -157,7 +167,11 @@ export class GreytHRAutomation {
 
     await this.initFirebase();
     if (await this.checkStatus()) {
-      process.exit(0);
+      if (isStandaloneMode) {
+        process.exit(0);
+      } else {
+        throw new Error("Task already completed for today");
+      }
     }
 
     this.validateCredentials();
@@ -638,7 +652,11 @@ export class GreytHRAutomation {
     } catch (error) {
       console.error("\n❌ Automation failed:", error.message);
       if (this.browser) await this.browser.close();
-      process.exit(1);
+      if (isStandaloneMode) {
+        process.exit(1);
+      } else {
+        throw error; // Re-throw error so server can handle it
+      }
     }
   }
 }
@@ -646,11 +664,7 @@ export class GreytHRAutomation {
 // Auto-run only if this file is executed directly (not imported)
 // This allows: node src/automate-login.js (standalone)
 // But prevents auto-run when imported by server.js
-// Check if this module is the main entry point
-const isMainModule =
-  process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename);
-
-if (isMainModule) {
+if (isStandaloneMode) {
   const automation = new GreytHRAutomation();
   automation.run().catch(console.error);
 }
