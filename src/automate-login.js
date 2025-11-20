@@ -56,6 +56,47 @@ export class GreytHRAutomation {
     }
   }
 
+  // Fetch GPS/location config from Firestore
+  async fetchLocationConfig() {
+    if (!this.db) {
+      // Return default if Firebase not available
+      return {
+        latitude: 28.5355,
+        longitude: 77.391,
+        accuracy: 100,
+        enabled: true,
+      };
+    }
+
+    try {
+      const locationDoc = await this.db
+        .collection("config")
+        .doc("location")
+        .get();
+      if (locationDoc.exists) {
+        const data = locationDoc.data();
+        if (data && data.enabled !== false) {
+          return {
+            latitude: data.latitude || 28.5355,
+            longitude: data.longitude || 77.391,
+            accuracy: data.accuracy || 100,
+            enabled: true,
+          };
+        }
+      }
+    } catch (error) {
+      console.warn("⚠️  Could not fetch location config:", error.message);
+    }
+
+    // Default to Delhi, India coordinates
+    return {
+      latitude: 28.5355,
+      longitude: 77.391,
+      accuracy: 100,
+      enabled: true,
+    };
+  }
+
   getTodayDateString() {
     const date = new Date();
     return date.toISOString().split("T")[0]; // YYYY-MM-DD
@@ -204,7 +245,33 @@ export class GreytHRAutomation {
         : ["--start-maximized", "--no-sandbox", "--disable-setuid-sandbox"],
     });
 
+    // Grant geolocation permissions before creating page
+    const context = this.browser.defaultBrowserContext();
+    await context.overridePermissions(this.baseUrl, ["geolocation"]);
+
     this.page = await this.browser.newPage();
+
+    // Set geolocation using Chrome CDP (Chrome DevTools Protocol)
+    try {
+      const locationConfig = await this.fetchLocationConfig();
+      if (locationConfig.enabled) {
+        console.log(
+          `📍 Setting GPS location: ${locationConfig.latitude}° N, ${locationConfig.longitude}° E`
+        );
+
+        // Set geolocation using CDP
+        const client = await this.page.target().createCDPSession();
+        await client.send("Emulation.setGeolocationOverride", {
+          latitude: locationConfig.latitude,
+          longitude: locationConfig.longitude,
+          accuracy: locationConfig.accuracy,
+        });
+        console.log("✅ GPS location set successfully");
+      }
+    } catch (error) {
+      console.warn("⚠️  Could not set GPS location:", error.message);
+      console.warn("   Continuing without GPS override...");
+    }
 
     this.page.on("console", (msg) => {
       if (msg.type() === "error") {

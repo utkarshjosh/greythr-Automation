@@ -10,19 +10,19 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 // Enable CORS for all origins with explicit configuration
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Trigger-Token",
-      "X-Force",
-    ],
-    credentials: false,
-  })
-);
+// app.use(
+//   cors({
+//     origin: "*",
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowedHeaders: [
+//       "Content-Type",
+//       "Authorization",
+//       "X-Trigger-Token",
+//       "X-Force",
+//     ],
+//     credentials: false,
+//   })
+// );
 
 // Handle preflight requests explicitly
 app.options("*", cors());
@@ -60,7 +60,10 @@ async function seedDefaultConfig() {
       };
 
       await db.collection("config").doc("schedule").set(defaultSchedule);
-      console.log("✅ Default schedule config created:", defaultSchedule.cron);
+      console.log(
+        "✅ Default schedule config created:",
+        defaultSchedule.description
+      );
     } else {
       console.log("✅ Schedule config already exists");
     }
@@ -89,6 +92,30 @@ async function seedDefaultConfig() {
       console.log("✅ General config already exists");
     }
 
+    // Check if location/GPS config exists
+    const locationDoc = await db.collection("config").doc("location").get();
+
+    if (!locationDoc.exists) {
+      console.log("📝 Creating default location config...");
+      const defaultLocation = {
+        latitude: 28.5355,
+        longitude: 77.391,
+        accuracy: 100, // meters
+        enabled: true,
+        description: "Default location: Delhi, India (28.5355° N, 77.3910° E)",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await db.collection("config").doc("location").set(defaultLocation);
+      console.log(
+        "✅ Default location config created:",
+        defaultLocation.description
+      );
+    } else {
+      console.log("✅ Location config already exists");
+    }
+
     console.log("🌱 Database seeding complete\n");
   } catch (e) {
     console.error("❌ Error seeding default config:", e.message);
@@ -109,6 +136,33 @@ async function fetchScheduleCron() {
   }
   // Default to 09:00 daily
   return "0 9 * * *";
+}
+
+// Helper to fetch GPS/location config from config collection
+async function fetchLocationConfig() {
+  try {
+    const locationDoc = await db.collection("config").doc("location").get();
+    if (locationDoc.exists) {
+      const data = locationDoc.data();
+      if (data && data.enabled !== false) {
+        return {
+          latitude: data.latitude || 28.5355,
+          longitude: data.longitude || 77.391,
+          accuracy: data.accuracy || 100,
+          enabled: true,
+        };
+      }
+    }
+  } catch (e) {
+    console.warn("⚠️ Could not fetch location config:", e.message);
+  }
+  // Default to Delhi, India coordinates
+  return {
+    latitude: 28.5355,
+    longitude: 77.391,
+    accuracy: 100,
+    enabled: true,
+  };
 }
 
 // Main task executed by cron or manual trigger
@@ -194,13 +248,14 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Config endpoint (provides schedule and today config)
+// Config endpoint (provides schedule, location, and today config)
 app.get("/config", async (req, res) => {
   try {
     const cfgDoc = await db.collection("config").doc("schedule").get();
     const schedule = cfgDoc.exists ? cfgDoc.data().cron : null;
+    const locationConfig = await fetchLocationConfig();
     const todayConfig = await fetchTodayConfig();
-    res.json({ schedule, today: todayConfig });
+    res.json({ schedule, location: locationConfig, today: todayConfig });
   } catch (e) {
     console.warn("⚠️ Config fetch error:", e.message);
     res.status(500).json({ error: e.message });
