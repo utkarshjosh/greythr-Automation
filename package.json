@@ -1,0 +1,33 @@
+{
+  "name": "greythr-automation",
+  "version": "1.0.0",
+  "description": "Headless automation system for GreytHR portal attendance marking with REST API support",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "automate": "node src/automate-login.js",
+    "start": "node src/server.js"
+  },
+  "keywords": [
+    "puppeteer",
+    "automation",
+    "greythr",
+    "attendance",
+    "headless",
+    "api"
+  ],
+  "author": "utkarshjosh",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com-personal:utkarshjosh/greythr-Automation.git"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0",
+    "dotenv": "^16.4.5",
+    "chalk": "^5.3.0",
+    "firebase-admin": "^12.0.0",
+    "express": "^4.19.2",
+    "node-cron": "^3.0.2"
+  }
+}
