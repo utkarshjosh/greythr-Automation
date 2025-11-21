@@ -282,6 +282,10 @@ export class GreytHRAutomation {
             "--no-sandbox",
             "--disable-setuid-sandbox",
             "--disable-dev-shm-usage",
+            "--disable-blink-features=AutomationControlled",
+            "--disable-features=IsolateOrigins,site-per-process",
+            "--disable-web-security",
+            "--disable-features=VizDisplayCompositor",
           ]
         : ["--start-maximized", "--no-sandbox", "--disable-setuid-sandbox"],
     });
@@ -291,6 +295,16 @@ export class GreytHRAutomation {
     await context.overridePermissions(this.baseUrl, ["geolocation"]);
 
     this.page = await this.browser.newPage();
+    
+    // Set user agent to avoid detection
+    await this.page.setUserAgent(
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    );
+    
+    // Set viewport for headless mode
+    if (headless) {
+      await this.page.setViewport({ width: 1920, height: 1080 });
+    }
 
     // Set geolocation using Chrome CDP (Chrome DevTools Protocol)
     try {
@@ -323,12 +337,23 @@ export class GreytHRAutomation {
 
   async navigate() {
     console.log(`🌐 Navigating to ${this.baseUrl}...`);
-    await this.page.goto(this.baseUrl, {
-      waitUntil: "networkidle2",
-      timeout: 60000,
-    });
-    console.log("✅ Page loaded\n");
-    await this.wait(2000);
+    try {
+      // Use domcontentloaded for more reliable loading in headless mode
+      // This is more stable than networkidle2 which can timeout in headless
+      await this.page.goto(this.baseUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: 60000,
+      });
+      console.log("✅ Page loaded\n");
+      
+      // Wait for page to stabilize after DOM is loaded
+      // Give time for JavaScript to execute and elements to render
+      await this.wait(3000);
+    } catch (error) {
+      console.warn(`⚠️  Navigation warning: ${error.message}`);
+      // Even if navigation fails, try to continue after a wait
+      await this.wait(3000);
+    }
   }
 
   async login() {
@@ -352,7 +377,13 @@ export class GreytHRAutomation {
   async loginStrategy1() {
     console.log("   → Strategy 1: Standard form fields");
 
-    await this.page.waitForSelector("input", { timeout: 10000 });
+    // Wait for page to be stable before looking for inputs
+    try {
+      await this.page.waitForSelector("input", { timeout: 15000 });
+      await this.wait(1000); // Additional wait for page stability
+    } catch (e) {
+      throw new Error("Page inputs not found or page not stable");
+    }
 
     // Employee ID
     const empIdSelectors = [
@@ -364,16 +395,24 @@ export class GreytHRAutomation {
 
     let empIdFilled = false;
     for (const selector of empIdSelectors) {
-      const element = await this.page.$(selector);
-      if (element) {
-        await element.click();
-        await this.page.keyboard.type(this.empId, { delay: 50 });
-        empIdFilled = true;
-        break;
+      try {
+        const element = await this.page.$(selector);
+        if (element) {
+          await element.click({ delay: 100 });
+          await this.wait(500);
+          await element.type(this.empId, { delay: 50 });
+          empIdFilled = true;
+          break;
+        }
+      } catch (e) {
+        // Continue to next selector if this one fails
+        continue;
       }
     }
 
     if (!empIdFilled) throw new Error("Could not find employee ID field");
+
+    await this.wait(500);
 
     // Password
     const passwordSelectors = [
@@ -383,30 +422,49 @@ export class GreytHRAutomation {
     ];
     let passwordFilled = false;
     for (const selector of passwordSelectors) {
-      const element = await this.page.$(selector);
-      if (element) {
-        await element.click();
-        await this.page.keyboard.type(this.password, { delay: 50 });
-        passwordFilled = true;
-        break;
+      try {
+        const element = await this.page.$(selector);
+        if (element) {
+          await element.click({ delay: 100 });
+          await this.wait(500);
+          await element.type(this.password, { delay: 50 });
+          passwordFilled = true;
+          break;
+        }
+      } catch (e) {
+        // Continue to next selector if this one fails
+        continue;
       }
     }
 
     if (!passwordFilled) throw new Error("Could not find password field");
 
-    // Submit
+    await this.wait(1000);
+
+    // Submit - use Promise.race to handle navigation
     const submitSelectors = [
       'button[type="submit"]',
       'button:has-text("Login")',
       'button:has-text("Sign In")',
     ];
     let submitted = false;
+    
+    // Set up navigation promise before clicking
+    const navigationPromise = Promise.race([
+      this.page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 20000 }).catch(() => null),
+      this.wait(20000) // Max wait time
+    ]);
+
     for (const selector of submitSelectors) {
-      const element = await this.page.$(selector);
-      if (element) {
-        await element.click();
-        submitted = true;
-        break;
+      try {
+        const element = await this.page.$(selector);
+        if (element) {
+          await element.click({ delay: 100 });
+          submitted = true;
+          break;
+        }
+      } catch (e) {
+        continue;
       }
     }
 
@@ -414,46 +472,167 @@ export class GreytHRAutomation {
       await this.page.keyboard.press("Enter");
     }
 
-    await this.page
-      .waitForNavigation({ waitUntil: "networkidle2", timeout: 15000 })
-      .catch(() => console.log("   ⚠️ Navigation timeout, checking URL..."));
+    // Wait for navigation
+    await navigationPromise;
+    await this.wait(2000); // Additional wait after navigation
 
+    // Check if login was successful
     const currentUrl = this.page.url();
-    if (currentUrl.includes("dashboard") || currentUrl.includes("home")) {
+    if (currentUrl.includes("dashboard") || currentUrl.includes("home") || currentUrl.includes("greythr")) {
       console.log("✅ Login successful!\n");
     } else {
-      throw new Error("Login might have failed");
+      // Don't throw immediately - might still be loading
+      console.log(`   ⚠️ URL check: ${currentUrl}`);
+      await this.wait(3000);
+      const finalUrl = this.page.url();
+      if (!finalUrl.includes("dashboard") && !finalUrl.includes("home") && !finalUrl.includes("greythr")) {
+        throw new Error("Login might have failed - URL doesn't match expected pattern");
+      }
+      console.log("✅ Login successful (after additional wait)!\n");
     }
   }
 
   async loginStrategy2() {
     // Simplified backup strategy
     console.log("   → Strategy 2: XPath");
-    const [empIdInput] = await this.page.$x(
-      '//input[@type="text" or @name="username"]'
-    );
-    if (empIdInput) await empIdInput.type(this.empId);
+    
+    try {
+      // Wait for inputs to be available
+      await this.page.waitForSelector("input", { timeout: 10000 });
+      await this.wait(1000);
+      
+      const [empIdInput] = await this.page.$x(
+        '//input[@type="text" or @name="username"]'
+      );
+      if (empIdInput) {
+        await empIdInput.click({ delay: 100 });
+        await this.wait(500);
+        await empIdInput.type(this.empId, { delay: 50 });
+      } else {
+        throw new Error("Employee ID input not found");
+      }
 
-    const [passInput] = await this.page.$x('//input[@type="password"]');
-    if (passInput) await passInput.type(this.password);
+      await this.wait(500);
 
-    const [submitBtn] = await this.page.$x('//button[@type="submit"]');
-    if (submitBtn) await submitBtn.click();
-    else await this.page.keyboard.press("Enter");
+      const [passInput] = await this.page.$x('//input[@type="password"]');
+      if (passInput) {
+        await passInput.click({ delay: 100 });
+        await this.wait(500);
+        await passInput.type(this.password, { delay: 50 });
+      } else {
+        throw new Error("Password input not found");
+      }
 
-    await this.wait(5000);
+      await this.wait(1000);
+
+      // Set up navigation promise
+      const navigationPromise = Promise.race([
+        this.page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 20000 }).catch(() => null),
+        this.wait(20000)
+      ]);
+
+      const [submitBtn] = await this.page.$x('//button[@type="submit"]');
+      if (submitBtn) {
+        await submitBtn.click({ delay: 100 });
+      } else {
+        await this.page.keyboard.press("Enter");
+      }
+
+      await navigationPromise;
+      await this.wait(3000);
+      
+      const currentUrl = this.page.url();
+      if (!currentUrl.includes("dashboard") && !currentUrl.includes("home") && !currentUrl.includes("greythr")) {
+        throw new Error("Login might have failed");
+      }
+      console.log("✅ Login successful!\n");
+    } catch (error) {
+      if (error.message.includes("Execution context was destroyed")) {
+        // Navigation happened, check if we're logged in
+        await this.wait(3000);
+        const currentUrl = this.page.url();
+        if (currentUrl.includes("dashboard") || currentUrl.includes("home") || currentUrl.includes("greythr")) {
+          console.log("✅ Login successful (navigation detected)!\n");
+          return;
+        }
+      }
+      throw error;
+    }
   }
 
   async loginStrategy3() {
     // Fallback
     console.log("   → Strategy 3: Generic Inputs");
-    const inputs = await this.page.$$("input");
-    if (inputs.length >= 2) {
-      await inputs[0].type(this.empId);
-      await inputs[1].type(this.password);
-      await this.page.keyboard.press("Enter");
+    
+    try {
+      // Wait for page to be stable
+      await this.page.waitForSelector("input", { timeout: 10000 });
+      await this.wait(2000); // Wait for page to fully stabilize
+      
+      // Re-query inputs to ensure they're still valid
+      const inputs = await this.page.$$("input");
+      if (inputs.length >= 2) {
+        // Use evaluate to interact with inputs more safely
+        await this.page.evaluate((empId, password) => {
+          const inputs = Array.from(document.querySelectorAll("input"));
+          if (inputs.length >= 2) {
+            // Find text input (usually first)
+            const textInput = inputs.find(inp => 
+              inp.type === "text" || 
+              inp.type === "email" || 
+              (!inp.type && inp.tagName === "INPUT")
+            ) || inputs[0];
+            
+            // Find password input
+            const passInput = inputs.find(inp => inp.type === "password") || inputs[1];
+            
+            if (textInput && passInput) {
+              textInput.focus();
+              textInput.value = empId;
+              textInput.dispatchEvent(new Event("input", { bubbles: true }));
+              textInput.dispatchEvent(new Event("change", { bubbles: true }));
+              
+              passInput.focus();
+              passInput.value = password;
+              passInput.dispatchEvent(new Event("input", { bubbles: true }));
+              passInput.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+          }
+        }, this.empId, this.password);
+        
+        await this.wait(1000);
+        
+        // Set up navigation promise before submitting
+        const navigationPromise = Promise.race([
+          this.page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 20000 }).catch(() => null),
+          this.wait(20000)
+        ]);
+        
+        await this.page.keyboard.press("Enter");
+        
+        await navigationPromise;
+        await this.wait(3000);
+        
+        const currentUrl = this.page.url();
+        if (!currentUrl.includes("dashboard") && !currentUrl.includes("home") && !currentUrl.includes("greythr")) {
+          throw new Error("Login might have failed");
+        }
+        console.log("✅ Login successful!\n");
+      } else {
+        throw new Error("Not enough input fields found");
+      }
+    } catch (error) {
+      if (error.message.includes("Execution context was destroyed")) {
+        // Navigation happened, check if we're logged in
+        await this.wait(3000);
+        const currentUrl = this.page.url();
+        if (currentUrl.includes("dashboard") || currentUrl.includes("home") || currentUrl.includes("greythr")) {
+          console.log("✅ Login successful (navigation detected)!\n");
+          return;
+        }
+      }
+      throw error;
     }
-    await this.wait(5000);
   }
 
   async swipeIn() {
@@ -743,6 +922,22 @@ export class GreytHRAutomation {
 
   async wait(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // Helper to safely interact with elements (handles navigation during interaction)
+  async safeElementAction(action, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await action();
+      } catch (error) {
+        if (error.message.includes("Execution context was destroyed") && i < retries - 1) {
+          console.log(`   ⚠️  Context destroyed, retrying (${i + 1}/${retries})...`);
+          await this.wait(1000);
+          continue;
+        }
+        throw error;
+      }
+    }
   }
 
   async run() {

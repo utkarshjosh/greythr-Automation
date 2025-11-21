@@ -440,6 +440,50 @@ app.post("/trigger", async (req, res) => {
   }
 });
 
+// Global variables for dynamic scheduling
+let currentCronTask = null;
+let currentCronExpression = null;
+
+// Setup listener for schedule changes
+function setupCronListener() {
+  console.log("🎧 Setting up config listener for dynamic scheduling...");
+
+  db.collection("config")
+    .doc("schedule")
+    .onSnapshot(
+      (doc) => {
+        if (!doc.exists) {
+          console.warn("⚠️ Schedule config document does not exist.");
+          return;
+        }
+
+        const data = doc.data();
+        const newCronExpr = data.cron || "0 9 * * *"; // Default
+
+        if (newCronExpr !== currentCronExpression) {
+          if (currentCronTask) {
+            console.log("🛑 Stopping previous cron task...");
+            currentCronTask.stop();
+          }
+
+          const timezone = "Asia/Kolkata";
+          console.log(
+            `🔄 Updating cron schedule to: ${newCronExpr} (Timezone: ${timezone})`
+          );
+
+          currentCronTask = cron.schedule(newCronExpr, dailyTask, {
+            timezone: timezone,
+          });
+
+          currentCronExpression = newCronExpr;
+        }
+      },
+      (error) => {
+        console.error("❌ Error listening to schedule config:", error);
+      }
+    );
+}
+
 // Start server and schedule cron
 app.listen(PORT, async () => {
   console.log(`🚀 Server listening on port ${PORT}\n`);
@@ -447,11 +491,8 @@ app.listen(PORT, async () => {
   // Seed default config if database is empty
   await seedDefaultConfig();
 
-  // Fetch and schedule cron
-  const cronExpr = await fetchScheduleCron();
-  console.log(`⏰ Scheduling daily task with cron expression: ${cronExpr}`);
-  cron.schedule(cronExpr, dailyTask, {
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  });
+  // Start dynamic cron listener
+  setupCronListener();
+
   console.log("✅ Server ready!\n");
 });
