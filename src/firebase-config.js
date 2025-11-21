@@ -52,3 +52,37 @@ export const initFirebase = () => {
     
     return db;
 };
+
+// Middleware to verify Firebase Auth tokens
+export const verifyAuthToken = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                error: 'Unauthorized',
+                message: 'Missing or invalid authorization header. Expected: Bearer <token>'
+            });
+        }
+
+        const idToken = authHeader.split('Bearer ')[1];
+        
+        try {
+            const decodedToken = await admin.auth().verifyIdToken(idToken);
+            req.user = decodedToken; // Attach user info to request
+            next();
+        } catch (error) {
+            console.warn('⚠️ Token verification failed:', error.message);
+            return res.status(401).json({
+                error: 'Unauthorized',
+                message: 'Invalid or expired token'
+            });
+        }
+    } catch (error) {
+        console.error('❌ Auth middleware error:', error);
+        return res.status(500).json({
+            error: 'Internal Server Error',
+            message: 'Authentication verification failed'
+        });
+    }
+};

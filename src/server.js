@@ -9,6 +9,14 @@ import { sendNotification } from "./notify.js";
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Initial date - logs before this date should be marked as PENDING
+const INITIAL_DATE = "2025-11-20"; // November 20, 2025
+
+// Helper function to check if a date string (YYYY-MM-DD) is before the initial date
+function isBeforeInitialDate(dateString) {
+  return dateString < INITIAL_DATE;
+}
+
 // Enable CORS for all origins with explicit configuration
 // app.use(
 //   cors({
@@ -36,8 +44,30 @@ const db = initFirebase();
 // Helper to fetch today's config (e.g., skip flag, status)
 async function fetchTodayConfig() {
   const today = new Date().toISOString().split("T")[0];
+
+  // Check if date is before initial date
+  if (isBeforeInitialDate(today)) {
+    return {
+      status: "PENDING",
+      message:
+        "Data not available - date is before initial day (November 20, 2025)",
+      date: today,
+    };
+  }
+
   const doc = await db.collection("daily_logs").doc(today).get();
-  if (doc.exists) return doc.data();
+  if (doc.exists) {
+    const data = doc.data();
+    // If the stored data is PENDING and before initial date, return it
+    if (
+      data.status === "PENDING" &&
+      data.message &&
+      data.message.includes("before initial day")
+    ) {
+      return data;
+    }
+    return data;
+  }
   return {};
 }
 
@@ -295,6 +325,21 @@ app.post("/seed", async (req, res) => {
 app.get("/status", async (req, res) => {
   try {
     const today = new Date().toISOString().split("T")[0];
+
+    // Check if date is before initial date
+    if (isBeforeInitialDate(today)) {
+      return res.json({
+        date: today,
+        data: {
+          status: "PENDING",
+          message:
+            "Data not available - date is before initial day (November 20, 2025)",
+        },
+        alreadySwiped: false,
+        status: "PENDING",
+      });
+    }
+
     const doc = await db.collection("daily_logs").doc(today).get();
     if (doc.exists) {
       const data = doc.data();

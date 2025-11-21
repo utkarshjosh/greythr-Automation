@@ -11,6 +11,27 @@ export async function sendNotification(title, body) {
     try {
         const message = {
             notification: { title, body },
+            data: {
+                title,
+                body,
+                click_action: "FLUTTER_NOTIFICATION_CLICK",
+                timestamp: new Date().toISOString()
+            },
+            android: {
+                priority: "high",
+                notification: {
+                    priority: "high",
+                    defaultSound: true
+                }
+            },
+            apns: {
+                payload: {
+                    aps: {
+                        sound: "default",
+                        contentAvailable: true
+                    }
+                }
+            },
             // Example: send to a topic named "greyt-automation"
             topic: 'greyt-automation',
         };

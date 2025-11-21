@@ -11,6 +11,9 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Initial date - logs before this date should be marked as PENDING
+const INITIAL_DATE = "2025-11-20"; // November 20, 2025
+
 // Check if running standalone (not imported as a module)
 const isStandaloneMode =
   process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename);
@@ -102,6 +105,11 @@ export class GreytHRAutomation {
     return date.toISOString().split("T")[0]; // YYYY-MM-DD
   }
 
+  // Check if a date string (YYYY-MM-DD) is before the initial date
+  isBeforeInitialDate(dateString) {
+    return dateString < INITIAL_DATE;
+  }
+
   async checkStatus() {
     // If force mode is enabled, skip the check
     if (this.force) {
@@ -112,6 +120,15 @@ export class GreytHRAutomation {
     if (!this.db) return false;
 
     const today = this.getTodayDateString();
+    
+    // Check if date is before initial date
+    if (this.isBeforeInitialDate(today)) {
+      console.log(`⏸️  Date ${today} is before initial date ${INITIAL_DATE}. Data not available.`);
+      // Mark as PENDING in database
+      await this.updateStatus("PENDING");
+      return true; // Exit early
+    }
+    
     try {
       const doc = await this.db.collection("daily_logs").doc(today).get();
       if (doc.exists) {
@@ -122,6 +139,10 @@ export class GreytHRAutomation {
         }
         if (data.status === "SKIP") {
           console.log("⏭️  Marked as SKIP for today. Exiting.");
+          return true;
+        }
+        if (data.status === "PENDING" && data.message && data.message.includes("before initial day")) {
+          console.log("⏸️  Date is before initial date. Exiting.");
           return true;
         }
       }
@@ -138,6 +159,26 @@ export class GreytHRAutomation {
     }
 
     const today = this.getTodayDateString();
+    
+    // Check if date is before initial date
+    if (this.isBeforeInitialDate(today)) {
+      console.log(`⏸️  Date ${today} is before initial date ${INITIAL_DATE}. Marking as PENDING.`);
+      try {
+        const updateData = {
+          status: "PENDING",
+          message: "Data not available - date is before initial day (November 20, 2025)",
+          timestamp: new Date().toISOString(),
+          empId: this.empId,
+        };
+        const docRef = this.db.collection("daily_logs").doc(today);
+        await docRef.set(updateData, { merge: true });
+        console.log(`💾 Status set to PENDING for ${today} (before initial date)`);
+      } catch (error) {
+        console.error("❌ Error updating status to Firebase:", error.message);
+      }
+      return;
+    }
+
     try {
       const updateData = {
         status: status,
