@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "automate": "node src/automate-login.js",
+    "automate:force": "node src/automate-login.js --force",
     "start": "node src/server.js"
   },
   "keywords": [

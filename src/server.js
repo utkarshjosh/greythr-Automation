@@ -146,6 +146,28 @@ async function seedDefaultConfig() {
       console.log("✅ Location config already exists");
     }
 
+    // Check if work_location config exists
+    const workLocationDoc = await db.collection("config").doc("work_location").get();
+
+    if (!workLocationDoc.exists) {
+      console.log("📝 Creating default work location config...");
+      const defaultWorkLocation = {
+        workLocation: "Office", // Options: "Office" or "Work From Home"
+        remarks: "", // Optional remarks for sign-in
+        description: "Work location for sign-in (Office or Work From Home)",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await db.collection("config").doc("work_location").set(defaultWorkLocation);
+      console.log(
+        "✅ Default work location config created:",
+        `${defaultWorkLocation.workLocation}`
+      );
+    } else {
+      console.log("✅ Work location config already exists");
+    }
+
     console.log("🌱 Database seeding complete\n");
   } catch (e) {
     console.error("❌ Error seeding default config:", e.message);

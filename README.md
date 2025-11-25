@@ -8,9 +8,12 @@ A headless automation system for GreytHR portal attendance marking with REST API
 - **REST API**: Trigger automation on-demand via HTTP endpoints
 - **Scheduled Automation**: Daily cron job support with configurable schedules
 - **Firebase Integration**: Status tracking and configuration via Firestore
+- **Work Location Support**: Configure Office or Work From Home sign-in via Firebase
 - **Force Mode**: Bypass "already done" checks for testing and manual overrides
 - **Smart Detection**: Automatically detects if swipe was already completed
+- **Modal Handling**: Automatically handles sign-in location modals
 - **Headless Mode**: Run automation in headless mode for server environments
+- **Shadow DOM Support**: Handles modern web components with shadow DOM
 
 ## 📋 Prerequisites
 
@@ -100,6 +103,7 @@ curl http://localhost:8000/health
 - [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) - Complete API reference
 - [QUICK_START.md](./QUICK_START.md) - Quick start guide
 - [SCHEDULING.md](./SCHEDULING.md) - Cron scheduling guide
+- [FIREBASE_CONFIG.md](./FIREBASE_CONFIG.md) - Firebase configuration guide
 
 ## 🧪 Testing
 

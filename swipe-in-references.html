@@ -1,0 +1,257 @@
+<div class="gt-popup-modal block" style="z-index: 1111; overflow: hidden">
+  <div class="modal-container mt-5x">
+    <div class="backdrop-wrapper" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+    </div>
+    <div class="highlight-modal max-w-modal-lg" role="modal">
+      <header part="header" class="modal-header">
+        <div part="title" class="modal-title" id="modal">
+          <slot name="modal-label">modal</slot>
+        </div>
+        <gt-icon class="modal-close hydrated"
+          ><template shadowrootmode="open"
+            ><i class="icon-gt-close"></i></template
+        ></gt-icon>
+      </header>
+      <div part="body" class="modal-body modal-footer-container">
+        <slot></slot>
+      </div>
+    </div>
+  </div>
+</div>
+
+<span _ngcontent-ng-c2388475188="" slot="modal-label"></span>
+
+<div _ngcontent-ng-c2388475188="" class="body-content">
+  <div _ngcontent-ng-c2388475188="" slot="modal-body" class="flex px-9">
+    <div _ngcontent-ng-c2388475188="" class="w-1/2">
+      <label
+        _ngcontent-ng-c2388475188=""
+        class="text-sm leading-none font-normal mb-2.5x block text-secondary-300 ng-star-inserted">
+        You are not signed in yet. </label
+      ><!----><label
+        _ngcontent-ng-c2388475188=""
+        class="text-xl leading-none font-semibold signup-title block text-secondary-500">
+        Tell us your work location.
+      </label>
+      <div _ngcontent-ng-c2388475188="" class="mb-3.5x ng-star-inserted">
+        <gt-dropdown
+          _ngcontent-ng-c2388475188=""
+          size="medium"
+          mandatory="true"
+          class="hydrated"
+          ><template shadowrootmode="open"
+            ><div class="min-width">
+              <div class="dropdown-label">
+                <label class="label required-field"
+                  >Enter Sign-In Location</label
+                >
+              </div>
+              <div class="dropdown dropdown-margin">
+                <button
+                  class="dropdown-button"
+                  aria-haspopup="true"
+                  aria-expanded="false">
+                  <span class="selected-item-text placeholder">Select</span
+                  ><img
+                    class="toggle"
+                    src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iOHB4IiBoZWlnaHQ9IjRweCIgdmlld0JveD0iMCAwIDggNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj4KICAgIDx0aXRsZT5GaWxsIDYwMzwvdGl0bGU+CiAgICA8ZyBpZD0iV2lyZWZyYW1lLWFuZC1zY3JlZW5zIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj4KICAgICAgICA8ZyBpZD0iUmVxdWVzdC0tLW5ldy1sZXR0ZXItLS13aXRoLWN1c3RvbS1mZWlsZHMtQ29weS02IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNTE2LjAwMDAwMCwgLTM0Ni4wMDAwMDApIiBmaWxsPSIjNjc3QThFIj4KICAgICAgICAgICAgPGcgaWQ9Ikdyb3VwLTUtQ29weSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjQ0LjAwMDAwMCwgMzAyLjAwMDAwMCkiPgogICAgICAgICAgICAgICAgPHBvbHlsaW5lIGlkPSJGaWxsLTYwMyIgcG9pbnRzPSIyNzIuMTY2MTQ4IDQ0IDI3Ni4wODMwNzQgNDggMjgwIDQ0IDI3MiA0NCI+PC9wb2x5bGluZT4KICAgICAgICAgICAgPC9nPgogICAgICAgIDwvZz4KICAgIDwvZz4KPC9zdmc+" />
+                </button>
+              </div></div></template
+        ></gt-dropdown>
+      </div>
+      <!---->
+      <div _ngcontent-ng-c2388475188="">
+        <gt-text-area
+          _ngcontent-ng-c2388475188=""
+          size="medium"
+          resize="auto"
+          placeholder="Enter Reason"
+          class="hydrated"
+          ><template shadowrootmode="open"
+            ><div>
+              <label class="label-name">Remarks</label>
+              <div>
+                <textarea
+                  class="field w-3/5 h-32 resize"
+                  placeholder="Enter Reason"
+                  maxlength="50"
+                  id="text_area"></textarea>
+              </div></div></template
+        ></gt-text-area>
+      </div>
+    </div>
+    <div _ngcontent-ng-c2388475188="" class="flex-1">
+      <div
+        _ngcontent-ng-c2388475188=""
+        class="image-attendance-info-state"></div>
+      <gt-button
+        _ngcontent-ng-c2388475188=""
+        shade="primary"
+        class="flex justify-end hydrated"
+        ><template shadowrootmode="open"
+          ><button
+            class="btn btn-primary btn-medium"
+            disabled=""
+            type="button"
+            name="primary">
+            <slot name="left-icon"></slot>Sign In<slot
+              name="right-icon"></slot></button></template
+      ></gt-button>
+    </div>
+  </div>
+</div>
+
+<div _ngcontent-ng-c2388475188="" slot="modal-body" class="flex px-9">
+  <div _ngcontent-ng-c2388475188="" class="w-1/2">
+    <label
+      _ngcontent-ng-c2388475188=""
+      class="text-sm leading-none font-normal mb-2.5x block text-secondary-300 ng-star-inserted">
+      You are not signed in yet. </label
+    ><!----><label
+      _ngcontent-ng-c2388475188=""
+      class="text-xl leading-none font-semibold signup-title block text-secondary-500">
+      Tell us your work location.
+    </label>
+    <div _ngcontent-ng-c2388475188="" class="mb-3.5x ng-star-inserted">
+      <gt-dropdown
+        _ngcontent-ng-c2388475188=""
+        size="medium"
+        mandatory="true"
+        class="hydrated"
+        ><template shadowrootmode="open"
+          ><div class="min-width">
+            <div class="dropdown-label">
+              <label class="label required-field">Enter Sign-In Location</label>
+            </div>
+            <div class="dropdown dropdown-margin">
+              <button
+                class="dropdown-button"
+                aria-haspopup="true"
+                aria-expanded="false">
+                <span class="selected-item-text placeholder">Select</span
+                ><img
+                  class="toggle"
+                  src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iOHB4IiBoZWlnaHQ9IjRweCIgdmlld0JveD0iMCAwIDggNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj4KICAgIDx0aXRsZT5GaWxsIDYwMzwvdGl0bGU+CiAgICA8ZyBpZD0iV2lyZWZyYW1lLWFuZC1zY3JlZW5zIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj4KICAgICAgICA8ZyBpZD0iUmVxdWVzdC0tLW5ldy1sZXR0ZXItLS13aXRoLWN1c3RvbS1mZWlsZHMtQ29weS02IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNTE2LjAwMDAwMCwgLTM0Ni4wMDAwMDApIiBmaWxsPSIjNjc3QThFIj4KICAgICAgICAgICAgPGcgaWQ9Ikdyb3VwLTUtQ29weSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjQ0LjAwMDAwMCwgMzAyLjAwMDAwMCkiPgogICAgICAgICAgICAgICAgPHBvbHlsaW5lIGlkPSJGaWxsLTYwMyIgcG9pbnRzPSIyNzIuMTY2MTQ4IDQ0IDI3Ni4wODMwNzQgNDggMjgwIDQ0IDI3MiA0NCI+PC9wb2x5bGluZT4KICAgICAgICAgICAgPC9nPgogICAgICAgIDwvZz4KICAgIDwvZz4KPC9zdmc+" />
+              </button>
+            </div></div></template
+      ></gt-dropdown>
+    </div>
+    <!---->
+    <div _ngcontent-ng-c2388475188="">
+      <gt-text-area
+        _ngcontent-ng-c2388475188=""
+        size="medium"
+        resize="auto"
+        placeholder="Enter Reason"
+        class="hydrated"
+        ><template shadowrootmode="open"
+          ><div>
+            <label class="label-name">Remarks</label>
+            <div>
+              <textarea
+                class="field w-3/5 h-32 resize"
+                placeholder="Enter Reason"
+                maxlength="50"
+                id="text_area"></textarea>
+            </div></div></template
+      ></gt-text-area>
+    </div>
+  </div>
+  <div _ngcontent-ng-c2388475188="" class="flex-1">
+    <div _ngcontent-ng-c2388475188="" class="image-attendance-info-state"></div>
+    <gt-button
+      _ngcontent-ng-c2388475188=""
+      shade="primary"
+      class="flex justify-end hydrated"
+      ><template shadowrootmode="open"
+        ><button
+          class="btn btn-primary btn-medium"
+          disabled=""
+          type="button"
+          name="primary">
+          <slot name="left-icon"></slot>Sign In<slot
+            name="right-icon"></slot></button></template
+    ></gt-button>
+  </div>
+</div>
+
+<div _ngcontent-ng-c2388475188="" class="w-1/2">
+  <label
+    _ngcontent-ng-c2388475188=""
+    class="text-sm leading-none font-normal mb-2.5x block text-secondary-300 ng-star-inserted">
+    You are not signed in yet. </label
+  ><!----><label
+    _ngcontent-ng-c2388475188=""
+    class="text-xl leading-none font-semibold signup-title block text-secondary-500">
+    Tell us your work location.
+  </label>
+  <div _ngcontent-ng-c2388475188="" class="mb-3.5x ng-star-inserted">
+    <gt-dropdown
+      _ngcontent-ng-c2388475188=""
+      size="medium"
+      mandatory="true"
+      class="hydrated"
+      ><template shadowrootmode="open"
+        ><div class="min-width">
+          <div class="dropdown-label">
+            <label class="label required-field">Enter Sign-In Location</label>
+          </div>
+          <div class="dropdown dropdown-margin">
+            <button
+              class="dropdown-button"
+              aria-haspopup="true"
+              aria-expanded="false">
+              <span class="selected-item-text placeholder">Select</span
+              ><img
+                class="toggle"
+                src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iOHB4IiBoZWlnaHQ9IjRweCIgdmlld0JveD0iMCAwIDggNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj4KICAgIDx0aXRsZT5GaWxsIDYwMzwvdGl0bGU+CiAgICA8ZyBpZD0iV2lyZWZyYW1lLWFuZC1zY3JlZW5zIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj4KICAgICAgICA8ZyBpZD0iUmVxdWVzdC0tLW5ldy1sZXR0ZXItLS13aXRoLWN1c3RvbS1mZWlsZHMtQ29weS02IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNTE2LjAwMDAwMCwgLTM0Ni4wMDAwMDApIiBmaWxsPSIjNjc3QThFIj4KICAgICAgICAgICAgPGcgaWQ9Ikdyb3VwLTUtQ29weSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjQ0LjAwMDAwMCwgMzAyLjAwMDAwMCkiPgogICAgICAgICAgICAgICAgPHBvbHlsaW5lIGlkPSJGaWxsLTYwMyIgcG9pbnRzPSIyNzIuMTY2MTQ4IDQ0IDI3Ni4wODMwNzQgNDggMjgwIDQ0IDI3MiA0NCI+PC9wb2x5bGluZT4KICAgICAgICAgICAgPC9nPgogICAgICAgIDwvZz4KICAgIDwvZz4KPC9zdmc+" />
+            </button>
+          </div></div></template
+    ></gt-dropdown>
+  </div>
+  <!---->
+  <div _ngcontent-ng-c2388475188="">
+    <gt-text-area
+      _ngcontent-ng-c2388475188=""
+      size="medium"
+      resize="auto"
+      placeholder="Enter Reason"
+      class="hydrated"
+      ><template shadowrootmode="open"
+        ><div>
+          <label class="label-name">Remarks</label>
+          <div>
+            <textarea
+              class="field w-3/5 h-32 resize"
+              placeholder="Enter Reason"
+              maxlength="50"
+              id="text_area"></textarea>
+          </div></div></template
+    ></gt-text-area>
+  </div>
+</div>
+
+<gt-dropdown
+  _ngcontent-ng-c2388475188=""
+  size="medium"
+  mandatory="true"
+  class="hydrated"
+  ><template shadowrootmode="open"
+    ><div class="min-width">
+      <div class="dropdown-label">
+        <label class="label required-field">Enter Sign-In Location</label>
+      </div>
+      <div class="dropdown dropdown-margin">
+        <button
+          class="dropdown-button"
+          aria-haspopup="true"
+          aria-expanded="false">
+          <span class="selected-item-text placeholder">Select</span
+          ><img
+            class="toggle"
+            src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iOHB4IiBoZWlnaHQ9IjRweCIgdmlld0JveD0iMCAwIDggNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj4KICAgIDx0aXRsZT5GaWxsIDYwMzwvdGl0bGU+CiAgICA8ZyBpZD0iV2lyZWZyYW1lLWFuZC1zY3JlZW5zIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj4KICAgICAgICA8ZyBpZD0iUmVxdWVzdC0tLW5ldy1sZXR0ZXItLS13aXRoLWN1c3RvbS1mZWlsZHMtQ29weS02IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNTE2LjAwMDAwMCwgLTM0Ni4wMDAwMDApIiBmaWxsPSIjNjc3QThFIj4KICAgICAgICAgICAgPGcgaWQ9Ikdyb3VwLTUtQ29weSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjQ0LjAwMDAwMCwgMzAyLjAwMDAwMCkiPgogICAgICAgICAgICAgICAgPHBvbHlsaW5lIGlkPSJGaWxsLTYwMyIgcG9pbnRzPSIyNzIuMTY2MTQ4IDQ0IDI3Ni4wODMwNzQgNDggMjgwIDQ0IDI3MiA0NCI+PC9wb2x5bGluZT4KICAgICAgICAgICAgPC9nPgogICAgICAgIDwvZz4KICAgIDwvZz4KPC9zdmc+" />
+        </button>
+      </div></div></template
+></gt-dropdown>
+<span class="selected-item-text">Office</span>
