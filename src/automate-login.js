@@ -31,20 +31,20 @@ const SELECTORS = {
   // Main attendance widget
   ATTENDANCE_WIDGET: "gt-attendance-info",
   WIDGET_DIV: ".widget-border.bg-primary-50",
-  
+
   // Button Selectors
   BUTTON_SIGN_IN: "Sign In",
   BUTTON_SIGN_OUT: "Sign Out",
   BUTTON_VIEW_SWIPES: "View Swipes",
   BUTTON_SHADE_PRIMARY: "primary",
   BUTTON_NAME_PRIMARY: "primary",
-  
+
   // Modal Selectors
   MODAL_BODY: '[slot="modal-body"]',
   MODAL_CONTAINER: ".gt-popup-modal, .modal-container, [role='modal']",
   SWIPES_MODAL: "attendance-swipes-modal",
   MODAL_CLOSE: "attendance-swipes-modal .close",
-  
+
   // Dropdown Selectors
   DROPDOWN: "gt-dropdown",
   DROPDOWN_LABEL: ".dropdown-label label",
@@ -54,22 +54,22 @@ const SELECTORS = {
   DROPDOWN_ITEM: ".dropdown-item",
   DROPDOWN_ITEM_LABEL: ".item-label",
   DROPDOWN_LABEL_TEXT: "Enter Sign-In Location",
-  
+
   // Text Area Selectors
   TEXT_AREA: "gt-text-area",
   TEXT_AREA_INPUT: "textarea",
-  
+
   // Table Selectors (for View Swipes)
   TABLE_ROW: "table tbody tr",
   TABLE_CELL: "td",
-  
+
   // Location Options
   LOCATION_OPTIONS: {
     OFFICE: "Office",
     WORK_FROM_HOME: "Work from Home",
     CLIENT_LOCATION: "Client Location",
-    ON_DUTY: "On-Duty"
-  }
+    ON_DUTY: "On-Duty",
+  },
 };
 
 // Wait Times (in milliseconds)
@@ -81,13 +81,13 @@ const WAIT_TIMES = {
   SWIPE_PROCESS: 3000,
   PAGE_LOAD: 2000,
   DROPDOWN_OPEN: 1000,
-  BUTTON_CLICK: 500
+  BUTTON_CLICK: 500,
 };
 
 // Column Indices for Swipe Table
 const SWIPE_TABLE_COLUMNS = {
-  TIME: 0,      // Swipe Time
-  IN_OUT: 1     // In/Out status
+  TIME: 0, // Swipe Time
+  IN_OUT: 1, // In/Out status
 };
 
 export class GreytHRAutomation {
@@ -814,14 +814,21 @@ export class GreytHRAutomation {
     try {
       // Find View Swipes button in the attendance widget
       const viewSwipesBtn = await this.page.evaluateHandle(() => {
-        const attendanceInfo = document.querySelector(SELECTORS.ATTENDANCE_WIDGET);
+        const attendanceInfo = document.querySelector(
+          SELECTORS.ATTENDANCE_WIDGET
+        );
         if (!attendanceInfo) return null;
 
-        const buttons = Array.from(attendanceInfo.querySelectorAll("gt-button"));
+        const buttons = Array.from(
+          attendanceInfo.querySelectorAll("gt-button")
+        );
         return buttons.find((btn) => {
           const name = btn.getAttribute("name");
           const text = btn.innerText || btn.textContent || "";
-          return name === SELECTORS.BUTTON_VIEW_SWIPES || text.includes(SELECTORS.BUTTON_VIEW_SWIPES);
+          return (
+            name === SELECTORS.BUTTON_VIEW_SWIPES ||
+            text.includes(SELECTORS.BUTTON_VIEW_SWIPES)
+          );
         });
       });
 
@@ -841,30 +848,44 @@ export class GreytHRAutomation {
       await this.wait(WAIT_TIMES.TABLE_RENDER);
 
       // Extract swipe data from modal
-      const swipeData = await this.page.evaluate((selectors, columns) => {
-        const modal = document.querySelector(selectors.SWIPES_MODAL);
-        if (!modal) return { hasInSwipe: false, swipeTime: null };
+      const swipeData = await this.page.evaluate(
+        (selectors, columns) => {
+          const modal = document.querySelector(selectors.SWIPES_MODAL);
+          if (!modal) return { hasInSwipe: false, swipeTime: null };
 
-        const rows = Array.from(modal.querySelectorAll(selectors.TABLE_ROW));
-        if (rows.length === 0) return { hasInSwipe: false, swipeTime: null };
+          const rows = Array.from(modal.querySelectorAll(selectors.TABLE_ROW));
+          if (rows.length === 0) return { hasInSwipe: false, swipeTime: null };
 
-        // Find the row with "IN" in the IN_OUT column and extract time from TIME column
-        for (const row of rows) {
-          const cells = Array.from(row.querySelectorAll(selectors.TABLE_CELL));
-          if (cells.length >= 2) {
-            const inOutCell = cells[columns.IN_OUT];
-            const timeCell = cells[columns.TIME];
-            const inOutText = (inOutCell.innerText || inOutCell.textContent || "").trim();
+          // Find the row with "IN" in the IN_OUT column and extract time from TIME column
+          for (const row of rows) {
+            const cells = Array.from(
+              row.querySelectorAll(selectors.TABLE_CELL)
+            );
+            if (cells.length >= 2) {
+              const inOutCell = cells[columns.IN_OUT];
+              const timeCell = cells[columns.TIME];
+              const inOutText = (
+                inOutCell.innerText ||
+                inOutCell.textContent ||
+                ""
+              ).trim();
 
-            if (inOutText === "IN" || inOutText.includes("IN")) {
-              const swipeTime = (timeCell.innerText || timeCell.textContent || "").trim();
-              return { hasInSwipe: true, swipeTime: swipeTime };
+              if (inOutText === "IN" || inOutText.includes("IN")) {
+                const swipeTime = (
+                  timeCell.innerText ||
+                  timeCell.textContent ||
+                  ""
+                ).trim();
+                return { hasInSwipe: true, swipeTime: swipeTime };
+              }
             }
           }
-        }
 
-        return { hasInSwipe: false, swipeTime: null };
-      }, SELECTORS, SWIPE_TABLE_COLUMNS);
+          return { hasInSwipe: false, swipeTime: null };
+        },
+        SELECTORS,
+        SWIPE_TABLE_COLUMNS
+      );
 
       // Close modal
       try {
@@ -908,20 +929,28 @@ export class GreytHRAutomation {
 
       // Find Sign In button in the attendance widget
       const signInBtn = await this.page.evaluateHandle((selectors) => {
-        const attendanceInfo = document.querySelector(selectors.ATTENDANCE_WIDGET);
+        const attendanceInfo = document.querySelector(
+          selectors.ATTENDANCE_WIDGET
+        );
         if (!attendanceInfo) return null;
 
-        const buttons = Array.from(attendanceInfo.querySelectorAll("gt-button"));
+        const buttons = Array.from(
+          attendanceInfo.querySelectorAll("gt-button")
+        );
         for (const btn of buttons) {
           let text = (btn.innerText || btn.textContent || "").trim();
-          
+
           if (btn.shadowRoot) {
             const shadowButton = btn.shadowRoot.querySelector("button");
             if (shadowButton) {
-              text = (shadowButton.innerText || shadowButton.textContent || "").trim();
+              text = (
+                shadowButton.innerText ||
+                shadowButton.textContent ||
+                ""
+              ).trim();
             }
           }
-          
+
           if (text.includes(selectors.BUTTON_SIGN_IN)) {
             return btn;
           }
@@ -935,21 +964,35 @@ export class GreytHRAutomation {
       }
 
       console.log("   ✓ Found 'Sign In' button. Clicking...");
-      
+
       // Click the Sign In button
       await this.page.evaluate(() => {
-        const attendanceInfo = document.querySelector(SELECTORS.ATTENDANCE_WIDGET);
+        const attendanceInfo = document.querySelector(
+          SELECTORS.ATTENDANCE_WIDGET
+        );
         if (!attendanceInfo) return false;
-        const buttons = Array.from(attendanceInfo.querySelectorAll("gt-button"));
+        const buttons = Array.from(
+          attendanceInfo.querySelectorAll("gt-button")
+        );
         for (const btn of buttons) {
           if (btn.shadowRoot) {
             const shadowButton = btn.shadowRoot.querySelector("button");
             if (shadowButton) {
-              const text = (shadowButton.innerText || shadowButton.textContent || "").trim();
+              const text = (
+                shadowButton.innerText ||
+                shadowButton.textContent ||
+                ""
+              ).trim();
               if (text.includes(SELECTORS.BUTTON_SIGN_IN)) {
-                shadowButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-                shadowButton.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-                shadowButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                shadowButton.dispatchEvent(
+                  new MouseEvent("mousedown", { bubbles: true })
+                );
+                shadowButton.dispatchEvent(
+                  new MouseEvent("mouseup", { bubbles: true })
+                );
+                shadowButton.dispatchEvent(
+                  new MouseEvent("click", { bubbles: true })
+                );
                 shadowButton.click();
                 return true;
               }
@@ -1000,23 +1043,34 @@ export class GreytHRAutomation {
 
       // Find Sign Out button in the attendance widget
       const signOutBtn = await this.page.evaluateHandle((selectors) => {
-        const attendanceInfo = document.querySelector(selectors.ATTENDANCE_WIDGET);
+        const attendanceInfo = document.querySelector(
+          selectors.ATTENDANCE_WIDGET
+        );
         if (!attendanceInfo) return null;
 
-        const buttons = Array.from(attendanceInfo.querySelectorAll("gt-button"));
+        const buttons = Array.from(
+          attendanceInfo.querySelectorAll("gt-button")
+        );
         for (const btn of buttons) {
           const shade = btn.getAttribute("shade");
           let text = (btn.innerText || btn.textContent || "").trim();
-          
+
           if (btn.shadowRoot) {
             const shadowButton = btn.shadowRoot.querySelector("button");
             if (shadowButton) {
-              text = (shadowButton.innerText || shadowButton.textContent || "").trim();
+              text = (
+                shadowButton.innerText ||
+                shadowButton.textContent ||
+                ""
+              ).trim();
             }
           }
-          
+
           // Look for Sign Out button with primary shade
-          if (text.includes(selectors.BUTTON_SIGN_OUT) && shade === selectors.BUTTON_SHADE_PRIMARY) {
+          if (
+            text.includes(selectors.BUTTON_SIGN_OUT) &&
+            shade === selectors.BUTTON_SHADE_PRIMARY
+          ) {
             return btn;
           }
         }
@@ -1029,17 +1083,25 @@ export class GreytHRAutomation {
       }
 
       console.log("   ✓ Found 'Sign Out' button. Clicking...");
-      
+
       // Click the Sign Out button
       await this.page.evaluate(() => {
-        const attendanceInfo = document.querySelector(SELECTORS.ATTENDANCE_WIDGET);
+        const attendanceInfo = document.querySelector(
+          SELECTORS.ATTENDANCE_WIDGET
+        );
         if (!attendanceInfo) return false;
-        const buttons = Array.from(attendanceInfo.querySelectorAll("gt-button"));
+        const buttons = Array.from(
+          attendanceInfo.querySelectorAll("gt-button")
+        );
         for (const btn of buttons) {
           if (btn.shadowRoot) {
             const shadowButton = btn.shadowRoot.querySelector("button");
             if (shadowButton) {
-              const text = (shadowButton.innerText || shadowButton.textContent || "").trim();
+              const text = (
+                shadowButton.innerText ||
+                shadowButton.textContent ||
+                ""
+              ).trim();
               if (text.includes(SELECTORS.BUTTON_SIGN_OUT)) {
                 shadowButton.click();
                 return true;
@@ -1074,8 +1136,9 @@ export class GreytHRAutomation {
    */
   async verifySignInSuccess() {
     return await this.page.evaluate((selectors) => {
-      const widgetDiv = document.querySelector(selectors.WIDGET_DIV) || 
-                        document.querySelector(selectors.ATTENDANCE_WIDGET);
+      const widgetDiv =
+        document.querySelector(selectors.WIDGET_DIV) ||
+        document.querySelector(selectors.ATTENDANCE_WIDGET);
       if (!widgetDiv) return false;
 
       const buttons = Array.from(widgetDiv.querySelectorAll("gt-button"));
@@ -1083,13 +1146,20 @@ export class GreytHRAutomation {
         if (!btn.shadowRoot) continue;
         const shadowButton = btn.shadowRoot.querySelector("button");
         if (shadowButton) {
-          const text = (shadowButton.textContent || shadowButton.innerText || "").trim();
+          const text = (
+            shadowButton.textContent ||
+            shadowButton.innerText ||
+            ""
+          ).trim();
           const shade = btn.getAttribute("shade");
-          const name = shadowButton.getAttribute("name") || btn.getAttribute("name") || "";
-          
-          if (text.includes(selectors.BUTTON_SIGN_OUT) && 
-              shade === selectors.BUTTON_SHADE_PRIMARY && 
-              (name === selectors.BUTTON_NAME_PRIMARY || name === "")) {
+          const name =
+            shadowButton.getAttribute("name") || btn.getAttribute("name") || "";
+
+          if (
+            text.includes(selectors.BUTTON_SIGN_OUT) &&
+            shade === selectors.BUTTON_SHADE_PRIMARY &&
+            (name === selectors.BUTTON_NAME_PRIMARY || name === "")
+          ) {
             return true;
           }
         }
@@ -1104,8 +1174,9 @@ export class GreytHRAutomation {
    */
   async verifySignOutSuccess() {
     return await this.page.evaluate((selectors) => {
-      const widgetDiv = document.querySelector(selectors.WIDGET_DIV) || 
-                        document.querySelector(selectors.ATTENDANCE_WIDGET);
+      const widgetDiv =
+        document.querySelector(selectors.WIDGET_DIV) ||
+        document.querySelector(selectors.ATTENDANCE_WIDGET);
       if (!widgetDiv) return false;
 
       const buttons = Array.from(widgetDiv.querySelectorAll("gt-button"));
@@ -1113,7 +1184,11 @@ export class GreytHRAutomation {
         if (!btn.shadowRoot) continue;
         const shadowButton = btn.shadowRoot.querySelector("button");
         if (shadowButton) {
-          const text = (shadowButton.textContent || shadowButton.innerText || "").trim();
+          const text = (
+            shadowButton.textContent ||
+            shadowButton.innerText ||
+            ""
+          ).trim();
           if (text.includes(selectors.BUTTON_SIGN_IN)) {
             return true;
           }
@@ -1245,72 +1320,79 @@ export class GreytHRAutomation {
       console.log(
         `   🔍 Looking for option: "${workLocationConfig.workLocation}"`
       );
-      const optionSelected = await this.page.evaluate((targetLocation, selectors) => {
-        // Find the dropdown with "Enter Sign-In Location" label
-        const dropdowns = document.querySelectorAll(selectors.DROPDOWN);
-        let targetDropdown = null;
+      const optionSelected = await this.page.evaluate(
+        (targetLocation, selectors) => {
+          // Find the dropdown with "Enter Sign-In Location" label
+          const dropdowns = document.querySelectorAll(selectors.DROPDOWN);
+          let targetDropdown = null;
 
-        for (const dropdown of dropdowns) {
-          if (!dropdown.shadowRoot) continue;
+          for (const dropdown of dropdowns) {
+            if (!dropdown.shadowRoot) continue;
 
-          const label = dropdown.shadowRoot.querySelector(
-            selectors.DROPDOWN_LABEL
+            const label = dropdown.shadowRoot.querySelector(
+              selectors.DROPDOWN_LABEL
+            );
+            if (
+              label &&
+              label.textContent &&
+              label.textContent.includes(selectors.DROPDOWN_LABEL_TEXT)
+            ) {
+              targetDropdown = dropdown;
+              break;
+            }
+          }
+
+          if (!targetDropdown || !targetDropdown.shadowRoot) {
+            return { success: false, found: ["Dropdown not found"] };
+          }
+
+          // Look for dropdown items in shadow DOM - they're in .dropdown-container .dropdown-body .dropdown-item
+          const dropdownContainer = targetDropdown.shadowRoot.querySelector(
+            selectors.DROPDOWN_CONTAINER
           );
-          if (
-            label &&
-            label.textContent &&
-            label.textContent.includes(selectors.DROPDOWN_LABEL_TEXT)
-          ) {
-            targetDropdown = dropdown;
-            break;
+          if (!dropdownContainer) {
+            return { success: false, found: ["No dropdown-container"] };
           }
-        }
 
-        if (!targetDropdown || !targetDropdown.shadowRoot) {
-          return { success: false, found: ["Dropdown not found"] };
-        }
+          const items = dropdownContainer.querySelectorAll(
+            selectors.DROPDOWN_ITEM
+          );
+          const foundOptions = [];
 
-        // Look for dropdown items in shadow DOM - they're in .dropdown-container .dropdown-body .dropdown-item
-        const dropdownContainer = targetDropdown.shadowRoot.querySelector(
-          selectors.DROPDOWN_CONTAINER
-        );
-        if (!dropdownContainer) {
-          return { success: false, found: ["No dropdown-container"] };
-        }
+          for (const item of items) {
+            // The actual text is in .item-label inside .dropdown-item
+            const label = item.querySelector(selectors.DROPDOWN_ITEM_LABEL);
+            if (!label) continue;
 
-        const items = dropdownContainer.querySelectorAll(selectors.DROPDOWN_ITEM);
-        const foundOptions = [];
+            const text = (label.textContent || label.innerText || "").trim();
+            foundOptions.push(text);
 
-        for (const item of items) {
-          // The actual text is in .item-label inside .dropdown-item
-          const label = item.querySelector(selectors.DROPDOWN_ITEM_LABEL);
-          if (!label) continue;
+            // Match location - be flexible with variations
+            const textLower = text.toLowerCase();
+            const targetLower = targetLocation.toLowerCase();
 
-          const text = (label.textContent || label.innerText || "").trim();
-          foundOptions.push(text);
-
-          // Match location - be flexible with variations
-          const textLower = text.toLowerCase();
-          const targetLower = targetLocation.toLowerCase();
-
-          if (
-            (targetLower.includes("office") && textLower.includes("office")) ||
-            (targetLower.includes("work from home") &&
-              textLower.includes("work from home")) ||
-            (targetLower.includes("home") &&
-              textLower.includes("home") &&
-              !textLower.includes("office")) ||
-            (targetLower.includes("client location") &&
-              textLower.includes("client location")) ||
-            (targetLower.includes("on-duty") && textLower.includes("on-duty"))
-          ) {
-            item.click();
-            return { success: true, matched: text, found: foundOptions };
+            if (
+              (targetLower.includes("office") &&
+                textLower.includes("office")) ||
+              (targetLower.includes("work from home") &&
+                textLower.includes("work from home")) ||
+              (targetLower.includes("home") &&
+                textLower.includes("home") &&
+                !textLower.includes("office")) ||
+              (targetLower.includes("client location") &&
+                textLower.includes("client location")) ||
+              (targetLower.includes("on-duty") && textLower.includes("on-duty"))
+            ) {
+              item.click();
+              return { success: true, matched: text, found: foundOptions };
+            }
           }
-        }
 
-        return { success: false, found: foundOptions };
-      }, workLocationConfig.workLocation, SELECTORS);
+          return { success: false, found: foundOptions };
+        },
+        workLocationConfig.workLocation,
+        SELECTORS
+      );
 
       if (!optionSelected.success) {
         console.log(
@@ -1345,8 +1427,9 @@ export class GreytHRAutomation {
 
               if (!targetDropdown || !targetDropdown.shadowRoot) return false;
 
-              const items =
-                targetDropdown.shadowRoot.querySelectorAll(selectors.DROPDOWN_ITEM);
+              const items = targetDropdown.shadowRoot.querySelectorAll(
+                selectors.DROPDOWN_ITEM
+              );
               const targetLower = targetLocation.toLowerCase();
 
               for (const item of items) {
@@ -1401,23 +1484,29 @@ export class GreytHRAutomation {
 
       // Fill remarks if provided
       if (workLocationConfig.remarks) {
-        const remarksFilled = await this.page.evaluate((remarks, selectors) => {
-          // Find gt-text-area element (should be near the dropdown)
-          const textAreas = document.querySelectorAll(selectors.TEXT_AREA);
+        const remarksFilled = await this.page.evaluate(
+          (remarks, selectors) => {
+            // Find gt-text-area element (should be near the dropdown)
+            const textAreas = document.querySelectorAll(selectors.TEXT_AREA);
 
-          for (const textArea of textAreas) {
-            if (!textArea.shadowRoot) continue;
+            for (const textArea of textAreas) {
+              if (!textArea.shadowRoot) continue;
 
-            const textarea = textArea.shadowRoot.querySelector(selectors.TEXT_AREA_INPUT);
-            if (textarea) {
-              textarea.value = remarks;
-              textarea.dispatchEvent(new Event("input", { bubbles: true }));
-              textarea.dispatchEvent(new Event("change", { bubbles: true }));
-              return true;
+              const textarea = textArea.shadowRoot.querySelector(
+                selectors.TEXT_AREA_INPUT
+              );
+              if (textarea) {
+                textarea.value = remarks;
+                textarea.dispatchEvent(new Event("input", { bubbles: true }));
+                textarea.dispatchEvent(new Event("change", { bubbles: true }));
+                return true;
+              }
             }
-          }
-          return false;
-        }, workLocationConfig.remarks, SELECTORS);
+            return false;
+          },
+          workLocationConfig.remarks,
+          SELECTORS
+        );
 
         if (remarksFilled) {
           console.log("   ✓ Remarks filled");
@@ -1693,7 +1782,9 @@ export class GreytHRAutomation {
       return {
         url: window.location.href,
         title: document.title,
-        hasAttendanceInfo: !!document.querySelector(selectors.ATTENDANCE_WIDGET),
+        hasAttendanceInfo: !!document.querySelector(
+          selectors.ATTENDANCE_WIDGET
+        ),
         bodyClasses: document.body.className,
         visibleText: document.body.textContent.substring(0, 500),
       };
@@ -1704,7 +1795,9 @@ export class GreytHRAutomation {
 
     // Wait for attendance widget to appear with longer timeout
     try {
-      await this.page.waitForSelector(SELECTORS.ATTENDANCE_WIDGET, { timeout: 20000 });
+      await this.page.waitForSelector(SELECTORS.ATTENDANCE_WIDGET, {
+        timeout: 20000,
+      });
       console.log("   ✓ Attendance widget loaded");
       await this.wait(WAIT_TIMES.SHADOW_DOM_INIT); // Give shadow DOM time to initialize
     } catch (e) {
@@ -1730,7 +1823,7 @@ export class GreytHRAutomation {
 
     // Strategy 1: Detection Phase - Check if already swiped via "View Swipes" modal
     const swipeData = await this.viewSwipes();
-    
+
     if (swipeData.hasInSwipe) {
       console.log("✅ Already swiped in - verified via View Swipes");
       if (swipeData.swipeTime) {
@@ -1743,7 +1836,7 @@ export class GreytHRAutomation {
     try {
       // Use the modular signIn() method
       const signInSuccess = await this.signIn();
-      
+
       if (!signInSuccess) {
         throw new Error("Sign-in failed - could not complete sign-in process");
       }
@@ -1751,9 +1844,12 @@ export class GreytHRAutomation {
       // Verify swipe was successful and extract swipe time
       let newSwipeTime = null;
       try {
-        await this.page.waitForSelector(`gt-button[name="${SELECTORS.BUTTON_VIEW_SWIPES}"]`, {
-          timeout: 3000,
-        });
+        await this.page.waitForSelector(
+          `gt-button[name="${SELECTORS.BUTTON_VIEW_SWIPES}"]`,
+          {
+            timeout: 3000,
+          }
+        );
         console.log("   ✓ Swipe confirmed - 'View Swipes' button appeared");
 
         // Extract the swipe time from View Swipes modal
@@ -1786,65 +1882,84 @@ export class GreytHRAutomation {
   async wait(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-        const attendanceInfo = document.querySelector("gt-attendance-info");
-        if (!attendanceInfo) return { hasWidget: false };
 
-        const buttons = Array.from(
-          attendanceInfo.querySelectorAll("gt-button")
-        );
-        const buttonData = buttons.map((btn) => {
-          const hasShadowRoot = !!btn.shadowRoot;
-          let shadowText = "";
-          let shadowHTML = "";
-          if (btn.shadowRoot) {
-            const shadowButton = btn.shadowRoot.querySelector("button");
-            if (shadowButton) {
-              shadowText = (
-                shadowButton.innerText ||
-                shadowButton.textContent ||
-                ""
-              ).trim();
-              shadowHTML = shadowButton.outerHTML.substring(0, 150);
-            }
+  /**
+   * Debug method to inspect attendance widget buttons
+   * @returns {Promise<Object>} Button information including shadow DOM details
+   */
+  async debugAttendanceButtons() {
+    console.log("   🔍 Debugging attendance widget buttons...");
+
+    const buttonInfo = await this.page.evaluate(() => {
+      const attendanceInfo = document.querySelector("gt-attendance-info");
+      if (!attendanceInfo) return { hasWidget: false };
+
+      const buttons = Array.from(attendanceInfo.querySelectorAll("gt-button"));
+      const buttonData = buttons.map((btn) => {
+        const hasShadowRoot = !!btn.shadowRoot;
+        let shadowText = "";
+        let shadowHTML = "";
+        if (btn.shadowRoot) {
+          const shadowButton = btn.shadowRoot.querySelector("button");
+          if (shadowButton) {
+            shadowText = (
+              shadowButton.innerText ||
+              shadowButton.textContent ||
+              ""
+            ).trim();
+            shadowHTML = shadowButton.outerHTML.substring(0, 150);
           }
-          const regularText = (btn.innerText || btn.textContent || "").trim();
-          const shade = btn.getAttribute("shade");
-          const name = btn.getAttribute("name");
-
-          return {
-            hasShadowRoot,
-            shadowText,
-            shadowHTML,
-            regularText,
-            shade,
-            name,
-          };
-        });
+        }
+        const regularText = (btn.innerText || btn.textContent || "").trim();
+        const shade = btn.getAttribute("shade");
+        const name = btn.getAttribute("name");
 
         return {
-          hasWidget: true,
-          buttonCount: buttons.length,
-          buttons: buttonData,
+          hasShadowRoot,
+          shadowText,
+          shadowHTML,
+          regularText,
+          shade,
+          name,
         };
       });
 
-      console.log(
-        `   → Debug: Found ${buttonInfo.buttonCount} gt-button(s) in attendance widget`
-      );
-      if (buttonInfo.buttons && buttonInfo.buttons.length > 0) {
-        buttonInfo.buttons.forEach((btn, idx) => {
-          console.log(`   → Button ${idx + 1}:`);
-          console.log(`      - Has shadow DOM: ${btn.hasShadowRoot}`);
-          console.log(`      - Shadow text: "${btn.shadowText}"`);
-          console.log(`      - Regular text: "${btn.regularText}"`);
-          console.log(`      - Shade: "${btn.shade}"`);
-          console.log(`      - Name: "${btn.name}"`);
-          if (btn.shadowHTML) {
-            console.log(`      - Shadow HTML: ${btn.shadowHTML}`);
-          }
-        });
-      }
+      return {
+        hasWidget: true,
+        buttonCount: buttons.length,
+        buttons: buttonData,
+      };
+    });
 
+    console.log(
+      `   → Debug: Found ${buttonInfo.buttonCount} gt-button(s) in attendance widget`
+    );
+    if (buttonInfo.buttons && buttonInfo.buttons.length > 0) {
+      buttonInfo.buttons.forEach((btn, idx) => {
+        console.log(`   → Button ${idx + 1}:`);
+        console.log(`      - Has shadow DOM: ${btn.hasShadowRoot}`);
+        console.log(`      - Shadow text: "${btn.shadowText}"`);
+        console.log(`      - Regular text: "${btn.regularText}"`);
+        console.log(`      - Shade: "${btn.shade}"`);
+        console.log(`      - Name: "${btn.name}"`);
+        if (btn.shadowHTML) {
+          console.log(`      - Shadow HTML: ${btn.shadowHTML}`);
+        }
+      });
+    }
+
+    return buttonInfo;
+  }
+
+  /**
+   * Alternative/Legacy Sign In Implementation
+   * Comprehensive sign-in method with multiple fallback strategies
+   * @returns {Promise<void>}
+   */
+  async signInAlternative() {
+    let swiped = false;
+
+    try {
       // Look for Sign In button inside gt-attendance-info
       // Need to handle both shadow DOM and regular DOM
       const signInBtn = await this.page.evaluateHandle(() => {
@@ -2353,10 +2468,6 @@ export class GreytHRAutomation {
         "Swipe failed - Sign In button not found or not accessible"
       );
     }
-  }
-
-  async wait(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // Helper to safely interact with elements (handles navigation during interaction)
