@@ -813,9 +813,9 @@ export class GreytHRAutomation {
 
     try {
       // Find View Swipes button in the attendance widget
-      const viewSwipesBtn = await this.page.evaluateHandle(() => {
+      const viewSwipesBtn = await this.page.evaluateHandle((selectors) => {
         const attendanceInfo = document.querySelector(
-          SELECTORS.ATTENDANCE_WIDGET
+          selectors.ATTENDANCE_WIDGET
         );
         if (!attendanceInfo) return null;
 
@@ -826,11 +826,11 @@ export class GreytHRAutomation {
           const name = btn.getAttribute("name");
           const text = btn.innerText || btn.textContent || "";
           return (
-            name === SELECTORS.BUTTON_VIEW_SWIPES ||
-            text.includes(SELECTORS.BUTTON_VIEW_SWIPES)
+            name === selectors.BUTTON_VIEW_SWIPES ||
+            text.includes(selectors.BUTTON_VIEW_SWIPES)
           );
         });
-      });
+      }, SELECTORS);
 
       if (!viewSwipesBtn || !viewSwipesBtn.asElement()) {
         console.log("   ℹ️ 'View Swipes' button not found.");
@@ -966,9 +966,9 @@ export class GreytHRAutomation {
       console.log("   ✓ Found 'Sign In' button. Clicking...");
 
       // Click the Sign In button
-      await this.page.evaluate(() => {
+      await this.page.evaluate((selectors) => {
         const attendanceInfo = document.querySelector(
-          SELECTORS.ATTENDANCE_WIDGET
+          selectors.ATTENDANCE_WIDGET
         );
         if (!attendanceInfo) return false;
         const buttons = Array.from(
@@ -983,7 +983,7 @@ export class GreytHRAutomation {
                 shadowButton.textContent ||
                 ""
               ).trim();
-              if (text.includes(SELECTORS.BUTTON_SIGN_IN)) {
+              if (text.includes(selectors.BUTTON_SIGN_IN)) {
                 shadowButton.dispatchEvent(
                   new MouseEvent("mousedown", { bubbles: true })
                 );
@@ -1000,7 +1000,7 @@ export class GreytHRAutomation {
           }
         }
         return false;
-      });
+      }, SELECTORS);
 
       console.log("   ⏳ Waiting for sign-in location modal...");
       await this.wait(WAIT_TIMES.MODAL_APPEAR);
@@ -1085,9 +1085,9 @@ export class GreytHRAutomation {
       console.log("   ✓ Found 'Sign Out' button. Clicking...");
 
       // Click the Sign Out button
-      await this.page.evaluate(() => {
+      await this.page.evaluate((selectors) => {
         const attendanceInfo = document.querySelector(
-          SELECTORS.ATTENDANCE_WIDGET
+          selectors.ATTENDANCE_WIDGET
         );
         if (!attendanceInfo) return false;
         const buttons = Array.from(
@@ -1102,7 +1102,7 @@ export class GreytHRAutomation {
                 shadowButton.textContent ||
                 ""
               ).trim();
-              if (text.includes(SELECTORS.BUTTON_SIGN_OUT)) {
+              if (text.includes(selectors.BUTTON_SIGN_OUT)) {
                 shadowButton.click();
                 return true;
               }
@@ -1110,7 +1110,7 @@ export class GreytHRAutomation {
           }
         }
         return false;
-      });
+      }, SELECTORS);
 
       console.log("   ⏳ Waiting for sign-out to process...");
       await this.wait(WAIT_TIMES.SWIPE_PROCESS);
@@ -1252,7 +1252,7 @@ export class GreytHRAutomation {
             }
           }
           return { found: false };
-        });
+        }, SELECTORS);
 
         if (dropdownCheck.found) {
           dropdownFound = true;
@@ -1626,7 +1626,7 @@ export class GreytHRAutomation {
           success: false,
           reason: "No Sign In button found in modal body",
         };
-      });
+      }, SELECTORS);
 
       if (!buttonResult.success) {
         console.log(`   ⚠️ Sign In button not clicked: ${buttonResult.reason}`);
