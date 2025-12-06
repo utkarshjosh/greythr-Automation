@@ -296,10 +296,14 @@ export class GreytHRAutomation {
     }
 
     try {
+      // Fetch work location config to include in logs
+      const workLocationConfig = await this.fetchWorkLocationConfig();
+
       const updateData = {
         status: status,
         timestamp: new Date().toISOString(),
         empId: this.empId,
+        workLocation: workLocationConfig.workLocation, // Add work location to logs
       };
 
       // Handle both swipe time (for DONE status) and failure reason (for FAILED status)
@@ -318,7 +322,7 @@ export class GreytHRAutomation {
       // Use set() with merge to create document if it doesn't exist
       const docRef = this.db.collection("daily_logs").doc(today);
       await docRef.set(updateData, { merge: true });
-      console.log(`💾 Status updated to ${status} for ${today}`);
+      console.log(`💾 Status updated to ${status} for ${today} (Location: ${workLocationConfig.workLocation})`);
     } catch (error) {
       // Provide more detailed error information
       console.error("❌ Error updating status to Firebase:");
@@ -402,14 +406,14 @@ export class GreytHRAutomation {
       defaultViewport: null,
       args: headless
         ? [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-blink-features=AutomationControlled",
-            "--disable-features=IsolateOrigins,site-per-process",
-            "--disable-web-security",
-            "--disable-features=VizDisplayCompositor",
-          ]
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-blink-features=AutomationControlled",
+          "--disable-features=IsolateOrigins,site-per-process",
+          "--disable-web-security",
+          "--disable-features=VizDisplayCompositor",
+        ]
         : ["--start-maximized", "--no-sandbox", "--disable-setuid-sandbox"],
     });
 
@@ -1266,8 +1270,7 @@ export class GreytHRAutomation {
 
       if (!dropdownFound) {
         console.log(
-          `   ℹ️ No sign-in location dropdown appeared after ${
-            maxAttempts * 500
+          `   ℹ️ No sign-in location dropdown appeared after ${maxAttempts * 500
           }ms`
         );
         return false;
@@ -1464,15 +1467,13 @@ export class GreytHRAutomation {
             console.log("   ✓ Location selected (fallback)");
           } else {
             throw new Error(
-              `Failed to select location: "${
-                workLocationConfig.workLocation
+              `Failed to select location: "${workLocationConfig.workLocation
               }". Available: ${optionSelected.found.join(", ")}`
             );
           }
         } else {
           throw new Error(
-            `Failed to select location: "${
-              workLocationConfig.workLocation
+            `Failed to select location: "${workLocationConfig.workLocation
             }". Available: ${optionSelected.found.join(", ")}`
           );
         }
@@ -2157,8 +2158,7 @@ export class GreytHRAutomation {
         if (domScan.highZIndexElements.length > 0) {
           domScan.highZIndexElements.forEach((el, idx) => {
             console.log(
-              `      ${idx + 1}. ${el.tag}.${el.classes || "(no class)"} - z:${
-                el.zIndex
+              `      ${idx + 1}. ${el.tag}.${el.classes || "(no class)"} - z:${el.zIndex
               }, display:${el.display}, vis:${el.visibility}`
             );
             console.log(`         Text: "${el.textContent}"`);
@@ -2168,8 +2168,7 @@ export class GreytHRAutomation {
         console.log(`      - Body children: ${domScan.bodyChildren.length}`);
         domScan.bodyChildren.slice(-5).forEach((el, idx) => {
           console.log(
-            `      ${idx + 1}. ${el.tag}.${el.classes || "(no class)"} - z:${
-              el.zIndex
+            `      ${idx + 1}. ${el.tag}.${el.classes || "(no class)"} - z:${el.zIndex
             }, display:${el.display}`
           );
         });
@@ -2275,7 +2274,7 @@ export class GreytHRAutomation {
                 if (closeBtn) await closeBtn.click();
                 else await this.page.keyboard.press("Escape");
                 await this.wait(500);
-              } catch (e) {}
+              } catch (e) { }
             }
           } catch (e) {
             console.log("   ⚠️ Could not extract swipe time:", e.message);
@@ -2431,8 +2430,7 @@ export class GreytHRAutomation {
         if (verifyInfo.buttons) {
           verifyInfo.buttons.forEach((btn, idx) => {
             console.log(
-              `      ${idx + 1}. name="${btn.name}", text="${
-                btn.shadowText
+              `      ${idx + 1}. name="${btn.name}", text="${btn.shadowText
               }", isViewSwipes=${btn.isViewSwipes}`
             );
           });
