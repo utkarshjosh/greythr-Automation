@@ -15,6 +15,62 @@
  * in package.json. PM2 ecosystem files need to be CommonJS format.
  */
 
+const fs = require("fs");
+const path = require("path");
+
+/**
+ * Load environment variables from .env file
+ * This ensures PM2 has access to all required environment variables
+ */
+function loadEnvFile() {
+  const envPath = path.join(__dirname, ".env");
+  const env = {
+    NODE_ENV: "production",
+  };
+
+  // Try to load .env file if it exists
+  if (fs.existsSync(envPath)) {
+    const envFile = fs.readFileSync(envPath, "utf8");
+    const lines = envFile.split("\n");
+
+    for (const line of lines) {
+      // Skip empty lines and comments
+      const trimmedLine = line.trim();
+      if (!trimmedLine || trimmedLine.startsWith("#")) {
+        continue;
+      }
+
+      // Parse KEY=VALUE format
+      const equalIndex = trimmedLine.indexOf("=");
+      if (equalIndex > 0) {
+        const key = trimmedLine.substring(0, equalIndex).trim();
+        let value = trimmedLine.substring(equalIndex + 1).trim();
+
+        // Remove quotes if present
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
+          value = value.slice(1, -1);
+        }
+
+        // Skip empty values (they might be placeholders)
+        if (value && value !== "your_value_here") {
+          env[key] = value;
+        }
+      }
+    }
+  } else {
+    console.warn(
+      "⚠️  Warning: .env file not found at",
+      envPath,
+      "- Make sure .env file exists with all required variables"
+    );
+  }
+
+  return env;
+}
+
 module.exports = {
   apps: [
     {
@@ -28,14 +84,13 @@ module.exports = {
       interpreter: "node",
       
       // Production mode - explicitly set NODE_ENV to production
-      env: {
-        NODE_ENV: "production",
-      },
+      // Environment variables are loaded from .env file
+      env: loadEnvFile(),
       
       // ============================================
       // ENVIRONMENT VARIABLES - IMPORTANT!
       // ============================================
-      // Environment variables are loaded from .env file via dotenv in server.js
+      // Environment variables are automatically loaded from .env file above
       // Make sure .env file exists and contains all required variables:
       //   - PORT (optional, defaults to 8000)
       //   - TRIGGER_TOKEN (required for API authentication)
@@ -44,8 +99,8 @@ module.exports = {
       //   - GREYTHR_URL (required for GreytHR base URL)
       //   - HEADLESS (optional, for Puppeteer)
       //
-      // Note: PM2 doesn't support env_file property. Use dotenv in code instead.
-      // To load .env file, ensure dotenv.config() is called at the start of server.js
+      // The loadEnvFile() function reads the .env file and loads all variables
+      // into PM2's environment, ensuring they are available to the application.
       
       // Number of instances to run (use "max" for all CPU cores, or specify a number)
       instances: 1,
@@ -77,22 +132,26 @@ module.exports = {
       log_date_format: "YYYY-MM-DD HH:mm:ss Z",
       
       // Minimum uptime to consider app stable (in milliseconds)
-      min_uptime: 10000,
+      // Reduced for small app - faster startup detection
+      min_uptime: 2000,
       
       // Number of consecutive unstable restarts before stopping
       max_restarts: 10,
       
       // Restart delay (in milliseconds)
-      restart_delay: 4000,
+      // Reduced for small app - faster restarts
+      restart_delay: 1000,
       
       // Kill timeout (in milliseconds) - time to wait before force killing
-      kill_timeout: 5000,
+      // Reduced for small app - faster shutdown
+      kill_timeout: 2000,
       
       // Wait for graceful shutdown
       wait_ready: true,
       
       // Listen for ready event
-      listen_timeout: 10000,
+      // Reduced for small app - faster startup
+      listen_timeout: 3000,
       
       // Shutdown with message
       shutdown_with_message: true,
