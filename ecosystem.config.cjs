@@ -4,12 +4,15 @@
  * This file configures PM2 to run the GreytHR Automation server in production mode.
  * 
  * Usage:
- *   - Start: pm2 start ecosystem.config.js
- *   - Stop: pm2 stop ecosystem.config.js
- *   - Restart: pm2 restart ecosystem.config.js
- *   - Delete: pm2 delete ecosystem.config.js
+ *   - Start: pm2 start ecosystem.config.cjs
+ *   - Stop: pm2 stop ecosystem.config.cjs
+ *   - Restart: pm2 restart ecosystem.config.cjs
+ *   - Delete: pm2 delete ecosystem.config.cjs
  *   - View logs: pm2 logs greythr-automation
  *   - Monitor: pm2 monit
+ * 
+ * Note: This file uses .cjs extension because the project uses ES modules ("type": "module")
+ * in package.json. PM2 ecosystem files need to be CommonJS format.
  */
 
 module.exports = {
@@ -30,18 +33,19 @@ module.exports = {
       },
       
       // ============================================
-      // ENVIRONMENT FILE PATH - IMPORTANT!
+      // ENVIRONMENT VARIABLES - IMPORTANT!
       // ============================================
-      // Path to your .env file containing all environment variables
-      // Make sure this file exists and contains all required variables:
+      // Environment variables are loaded from .env file via dotenv in server.js
+      // Make sure .env file exists and contains all required variables:
       //   - PORT (optional, defaults to 8000)
       //   - TRIGGER_TOKEN (required for API authentication)
       //   - EMP_ID (required for GreytHR login)
       //   - PASSWORD (required for GreytHR login)
       //   - GREYTHR_URL (required for GreytHR base URL)
       //   - HEADLESS (optional, for Puppeteer)
-      // Update the path below if your .env file is in a different location
-      env_file: "./.env",
+      //
+      // Note: PM2 doesn't support env_file property. Use dotenv in code instead.
+      // To load .env file, ensure dotenv.config() is called at the start of server.js
       
       // Number of instances to run (use "max" for all CPU cores, or specify a number)
       instances: 1,

@@ -1,10 +1,33 @@
 // src/server.js
+// Load environment variables FIRST before any other imports
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cron from "node-cron";
 import cors from "cors";
 import { initFirebase } from "./firebase-config.js";
 import { runAutomation } from "./run-automation.js";
 import { sendNotification } from "./notify.js";
+
+// Validate required environment variables
+function validateEnv() {
+  const required = ["TRIGGER_TOKEN", "EMP_ID", "PASSWORD", "GREYTHR_URL"];
+  const missing = required.filter((key) => !process.env[key]);
+  
+  if (missing.length > 0) {
+    console.error("❌ Missing required environment variables:");
+    missing.forEach((key) => console.error(`   - ${key}`));
+    console.error("\n💡 Make sure .env file exists and contains all required variables.");
+    console.error("   See .env.example for reference.\n");
+    process.exit(1);
+  }
+  
+  console.log("✅ All required environment variables are present");
+}
+
+// Validate environment before starting server
+validateEnv();
 
 const app = express();
 const PORT = process.env.PORT || 8000;

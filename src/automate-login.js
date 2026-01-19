@@ -99,6 +99,33 @@ export class GreytHRAutomation {
     this.baseUrl = process.env.GREYTHR_URL;
     this.db = null;
     this.force = force; // Force mode: bypass "already done" check
+    
+    // Validate required environment variables
+    this.validateEnv();
+  }
+  
+  validateEnv() {
+    const missing = [];
+    if (!this.empId) missing.push("EMP_ID");
+    if (!this.password) missing.push("PASSWORD");
+    if (!this.baseUrl) missing.push("GREYTHR_URL");
+    
+    if (missing.length > 0) {
+      const error = `❌ Missing required environment variables: ${missing.join(", ")}\n` +
+                   `💡 Make sure .env file exists and contains all required variables.`;
+      console.error(error);
+      throw new Error(error);
+    }
+    
+    // Validate URL format
+    try {
+      new URL(this.baseUrl);
+    } catch (e) {
+      const error = `❌ Invalid GREYTHR_URL format: ${this.baseUrl}\n` +
+                   `💡 GREYTHR_URL must be a valid URL (e.g., https://example.com)`;
+      console.error(error);
+      throw new Error(error);
+    }
   }
 
   async initFirebase() {
